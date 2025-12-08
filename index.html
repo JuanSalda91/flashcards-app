@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+    <title>Flashcards App</title>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <h1 class="brand">Flashcards</h1>
+            <div class="header-actions">
+                <input id="search-decks" type="search" placeholder="Search decks" aria-label="Search decks">
+                <button id="new-deck-btn" type="button">New Deck</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-layout">
+        <aside class="sidebar" aria-label="Decks">
+            <div class="sidebar-inner">
+                <h2>Decks</h2>
+                <ul id="deck-list" class="deck-list">
+                    <li class="deck-item" tabindex="0">Sample Deck 1</li>
+                    <li class="deck-item" tabindex="0">Sample Deck 2</li>
+                </ul>
+                <button id="add-deck" type="button">Add Deck</button>
+            </div>
+        </aside>
+
+        <main class="main" id="main" role="main">
+            <div class="main-inner">
+                <section class="card-area" id="card-area" aria-live="polite">
+                    <article class="card" id="card">
+                        <div class="card-face card-front">Front of card</div>
+                        <div class="card-face card-back">Back of card</div>
+                    </article>
+                </section>
+
+                <div class="card-controls">
+                    <button id="prev-card" type="button">Prev</button>
+                    <button id="flip-card" type="button">Flip</button>
+                    <button id="next-card" type="button">Next</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <small>&copy; 2025 Flashcards App</small>
+        </div>
+    </footer>
+</body>
+</html>
