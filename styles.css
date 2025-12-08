@@ -1,0 +1,173 @@
+:root {
+	--bg: #f7fafc;
+	--panel: #ffffff;
+	--muted: #64748b;
+	--accent: #0ea5a4;
+	--accent-600: #089191;
+	--text: #0f172a;
+	--header-height: 64px;
+	--footer-height: 48px;
+	--sidebar-width: 260px;
+	--gap: 16px;
+	--radius: 10px;
+	--card-width: 520px;
+	--breakpoint-mobile: 720px;
+}
+
+/* Reset / Base */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+html, body {
+	height: 100%;
+}
+body {
+	margin: 0;
+	font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	background: var(--bg);
+	color: var(--text);
+	line-height: 1.4;
+}
+
+/* Utility */
+.visually-hidden { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
+button { cursor: pointer; }
+button, input { font: inherit; }
+
+/* App layout using CSS Grid */
+.app-layout {
+	display: grid;
+	grid-template-columns: var(--sidebar-width) 1fr;
+	grid-template-rows: var(--header-height) 1fr var(--footer-height);
+	grid-template-areas:
+		"header header"
+		"sidebar main"
+		"footer footer";
+	min-height: calc(100vh - var(--header-height) - var(--footer-height));
+}
+
+.site-header {
+	grid-area: header;
+	height: var(--header-height);
+	display: flex;
+	align-items: center;
+	background: var(--panel);
+	border-bottom: 1px solid rgba(15,23,42,0.06);
+	position: sticky;
+	top: 0;
+	z-index: 20;
+}
+
+.header-inner {
+	width: 100%;
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 0 var(--gap);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.brand {
+	margin: 0;
+	font-size: 1.125rem;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+input[type="search"] {
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 1px solid rgba(15,23,42,0.06);
+	background: #f8fafc;
+}
+
+.site-footer {
+	grid-area: footer;
+	height: var(--footer-height);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: transparent;
+	border-top: 1px solid rgba(15,23,42,0.03);
+}
+
+/* Sidebar */
+.sidebar {
+	grid-area: sidebar;
+	padding: calc(var(--gap) * 1.25);
+	background: var(--panel);
+	border-right: 1px solid rgba(15,23,42,0.04);
+	overflow: hidden;
+}
+
+.sidebar-inner { display: flex; flex-direction: column; gap: 12px; }
+
+.deck-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: calc(100vh - 220px); overflow: auto; }
+.deck-item {
+	padding: 8px 10px;
+	border-radius: 8px;
+	background: transparent;
+	color: var(--muted);
+	cursor: pointer;
+}
+.deck-item:focus, .deck-item:hover { background: rgba(14,165,164,0.07); color: var(--text); outline: none; }
+
+#add-deck { margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: var(--accent); color: #fff; border: none; }
+
+/* Main content */
+.main { grid-area: main; padding: calc(var(--gap) * 1.25); display: flex; align-items: flex-start; justify-content: center; }
+.main-inner { width: 100%; max-width: 1100px; }
+
+.card-area { display: flex; align-items: center; justify-content: center; min-height: 320px; }
+
+.card {
+	width: var(--card-width);
+	max-width: 100%;
+	background: var(--panel);
+	border-radius: var(--radius);
+	padding: 28px;
+	box-shadow: 0 8px 24px rgba(12,17,31,0.06);
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.card-face { font-size: 1.125rem; color: var(--text); }
+
+.card-controls { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+.card-controls button { padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(15,23,42,0.06); background: #fff; }
+
+/* Responsive adjustments */
+@media (max-width: var(--breakpoint-mobile)) {
+	.app-layout {
+		grid-template-columns: 1fr;
+		grid-template-rows: var(--header-height) 1fr auto var(--footer-height);
+		grid-template-areas:
+			"header"
+			"main"
+			"sidebar"
+			"footer";
+	}
+
+	.sidebar { border-right: none; border-top: 1px solid rgba(15,23,42,0.04); }
+	.header-inner { padding: 0 12px; }
+	.site-header { height: calc(var(--header-height)); }
+	.card { padding: 18px; }
+}
+
+/* Small tweaks */
+@media (max-width: 420px) {
+	:root { --gap: 12px; }
+	.brand { font-size: 1rem; }
+	input[type="search"] { padding: 7px 8px; }
+}
+
+/* End of styles */
+
