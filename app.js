@@ -117,11 +117,19 @@
   // Deck manager with in-memory array
   class DeckManager {
     constructor(studyMode = null) {
-      this.decks = [
-        { id: '' + Date.now(), title: 'Sample Deck 1', cards: [] },
-        { id: '' + (Date.now() + 1), title: 'Sample Deck 2', cards: [] }
-      ];
-      this.currentDeckId = this.decks[0].id;
+      // Try to load saved state
+      const savedState = loadState();
+      if (savedState && savedState.decks && savedState.decks.length > 0) {
+        this.decks = savedState.decks;
+        this.currentDeckId = savedState.currentDeckId || this.decks[0].id;
+      } else {
+        // Default decks if no saved state
+        this.decks = [
+          { id: '' + Date.now(), title: 'Sample Deck 1', cards: [] },
+          { id: '' + (Date.now() + 1), title: 'Sample Deck 2', cards: [] }
+        ];
+        this.currentDeckId = this.decks[0].id;
+      }
       this.studyMode = studyMode;
 
       this.deckListEl = document.getElementById('deck-list');
@@ -135,6 +143,11 @@
       this._bind();
       this.renderDeckList();
       this.selectDeck(this.currentDeckId);
+    }
+
+    _saveState() {
+      // Save current state to localStorage
+      saveState(this.decks, this.currentDeckId);
     }
 
     _bind() {
@@ -195,6 +208,7 @@
       const id = '' + Date.now();
       const deck = { id, title: title || 'Untitled Deck', cards: [] };
       this.decks.push(deck);
+      this._saveState();
       this.renderDeckList();
       this.selectDeck(id);
       return deck;
@@ -204,6 +218,7 @@
       const d = this.decks.find((x) => x.id === id);
       if (!d) return;
       d.title = newTitle;
+      this._saveState();
       this.renderDeckList();
       if (this.currentDeckId === id) this.selectDeck(id);
     }
@@ -215,6 +230,7 @@
       const sure = window.confirm(`Delete deck "${d.title}"? This cannot be undone.`);
       if (!sure) return;
       this.decks = this.decks.filter((x) => x.id !== id);
+      this._saveState();
       // if deleted current, pick first
       if (this.currentDeckId === id) {
         this.currentDeckId = this.decks.length ? this.decks[0].id : null;
@@ -300,6 +316,8 @@
       this.currentCardIndex = 0;
       this.isFlipped = false;
       this._cardIdCounter = 0; // for unique ID generation
+      this.searchQuery = ''; // for filtering cards without mutating data
+      this.filteredCards = []; // view-only filtered list, never mutates original
 
       this.cardEl = document.getElementById('card');
       this.cardAreaEl = document.getElementById('card-area');
@@ -309,8 +327,10 @@
       this.nextBtn = document.getElementById('next-card');
       this.newCardBtn = document.getElementById('new-card');
       this.searchInput = document.getElementById('search-cards');
+      this.searchCountEl = document.getElementById('search-count');
 
       this._boundKeydown = this._keydownHandler.bind(this);
+      this._debouncedSearch = debounce(this._performSearch.bind(this), 300); // 300ms debounce
       this._bind();
     }
 
@@ -330,6 +350,14 @@
             const cardId = e.target.getAttribute('data-card-id');
             this.deleteCard(cardId);
           }
+        });
+      }
+
+      // Debounced search on cards
+      if (this.searchInput) {
+        this.searchInput.addEventListener('input', (e) => {
+          this.searchQuery = e.target.value.toLowerCase();
+          this._debouncedSearch();
         });
       }
     }
@@ -384,12 +412,15 @@
     }
 
     renderCurrentCard() {
-      if (!this.currentDeck || this.currentDeck.cards.length === 0) {
+      // Use filteredCards if search is active, otherwise use all cards
+      const cardsToShow = this.filteredCards.length > 0 ? this.filteredCards : this.currentDeck.cards;
+
+      if (!this.currentDeck || cardsToShow.length === 0) {
         this.renderEmptyState();
         return;
       }
 
-      const card = this.currentDeck.cards[this.currentCardIndex];
+      const card = cardsToShow[this.currentCardIndex];
       if (!card) {
         this.renderEmptyState();
         return;
@@ -399,7 +430,7 @@
       this.isFlipped = false;
 
       const cardHTML = `
-        <article class="card" id="card" role="region" aria-label="Flashcard ${this.currentCardIndex + 1} of ${this.currentDeck.cards.length}">
+        <article class="card" id="card" role="region" aria-label="Flashcard ${this.currentCardIndex + 1} of ${cardsToShow.length}">
           <div class="card-face card-front" id="card-front">
             ${escapeHtml(card.front)}
           </div>
@@ -421,7 +452,7 @@
       // update card count
       const countEl = this.cardAreaEl?.querySelector('.card-count');
       if (countEl) {
-        countEl.textContent = `${this.currentCardIndex + 1} / ${this.currentDeck.cards.length}`;
+        countEl.textContent = `${this.currentCardIndex + 1} / ${cardsToShow.length}`;
       }
     }
 
@@ -522,6 +553,7 @@
           // Generate unique ID: timestamp + counter + random suffix
           const cardId = Date.now() + '-' + (this._cardIdCounter++) + '-' + Math.random().toString(36).substr(2, 9);
           this.currentDeck.cards.push({ id: cardId, front, back });
+          this.deckManager._saveState();
           this.renderCardList();
           this.renderCurrentCard();
           this.deckManager.modal.close();
@@ -535,18 +567,55 @@
       });
     }
 
+    _performSearch() {
+      if (!this.currentDeck) return;
+
+      // Filter cards without mutating the original array
+      if (this.searchQuery.trim() === '') {
+        // Clear search: restore full set
+        this.filteredCards = [...this.currentDeck.cards];
+        if (this.searchCountEl) {
+          this.searchCountEl.style.display = 'none';
+        }
+      } else {
+        // Filter based on front or back text match
+        this.filteredCards = this.currentDeck.cards.filter((card) => {
+          const front = card.front.toLowerCase();
+          const back = card.back.toLowerCase();
+          return front.includes(this.searchQuery) || back.includes(this.searchQuery);
+        });
+
+        // Show match count
+        if (this.searchCountEl) {
+          const strong = this.searchCountEl.querySelector('strong');
+          if (strong) {
+            strong.textContent = this.filteredCards.length;
+          }
+          this.searchCountEl.style.display = 'inline';
+        }
+      }
+
+      // Re-render with filtered results
+      this.currentCardIndex = 0;
+      this.renderCardList();
+      this.renderCurrentCard();
+    }
+
     renderCardList() {
       // render a list of cards in the deck for preview/management
       const listContainer = document.getElementById('card-list');
       if (!listContainer || !this.currentDeck) return;
 
-      if (this.currentDeck.cards.length === 0) {
+      // Use filteredCards for display (view-only, never mutates original)
+      const cardsToShow = this.filteredCards.length > 0 ? this.filteredCards : this.currentDeck.cards;
+
+      if (cardsToShow.length === 0) {
         listContainer.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;">No cards yet</p>';
         return;
       }
 
       let html = '<div class="card-list-items">';
-      this.currentDeck.cards.forEach((card, idx) => {
+      cardsToShow.forEach((card, idx) => {
         html += `
           <div class="card-list-item" data-card-id="${card.id}">
             <div class="card-list-content">
@@ -594,6 +663,7 @@
           // Update card object directly (persists in the cards array)
           card.front = front;
           card.back = back;
+          this.deckManager._saveState();
           // Re-render the card list and current card view
           this.renderCardList();
           // This will re-render the current card with updated text
@@ -618,6 +688,7 @@
       if (!sure) return;
 
       this.currentDeck.cards.splice(idx, 1);
+      this.deckManager._saveState();
 
       // adjust current index if needed
       if (this.currentCardIndex >= this.currentDeck.cards.length && this.currentCardIndex > 0) {

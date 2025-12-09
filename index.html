@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
+    <script src="storage.js" defer></script>
     <script src="app.js" defer></script>
     <title>Flashcards App</title>
 </head>
@@ -35,6 +36,7 @@
                     <h2 id="deck-title">Sample Deck 1</h2>
                     <div class="deck-actions">
                         <input id="search-cards" type="search" placeholder="Search cards" aria-label="Search cards">
+                        <span id="search-count" class="search-count" style="display:none;">Matches: <strong>0</strong></span>
                         <button id="shuffle-deck" type="button">Shuffle</button>
                         <button id="new-card" type="button">New Card</button>
                     </div>

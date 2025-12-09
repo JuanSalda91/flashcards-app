@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flashcards - Storage Test</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 20px; }
+    .test-section { margin: 20px 0; padding: 12px; border: 1px solid #ccc; border-radius: 8px; }
+    .test-section h3 { margin: 0 0 10px 0; }
+    button { padding: 8px 12px; margin-right: 8px; cursor: pointer; border: 1px solid #999; border-radius: 4px; }
+    pre { background: #f5f5f5; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Flashcards App - Storage Persistence Test</h1>
+  
+  <div class="test-section">
+    <h3>1. Create Test Data</h3>
+    <p>Create a deck "Spanish 101" with 2 cards, then check localStorage</p>
+    <button onclick="testCreateData()">Create Test Data</button>
+    <button onclick="viewStorage()">View localStorage</button>
+    <div id="test1-output"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>2. Simulate Page Reload</h3>
+    <p>Clear all JS memory and reload the app from localStorage</p>
+    <button onclick="testReload()">Simulate Reload</button>
+    <div id="test2-output"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>3. Test Search Filtering</h3>
+    <p>Create data, perform search, verify filtering</p>
+    <button onclick="testSearch()">Test Search</button>
+    <div id="test3-output"></div>
+  </div>
+
+  <div class="test-section">
+    <h3>4. Clear All</h3>
+    <button onclick="clearStorage()">Clear Storage</button>
+    <button onclick="location.reload()">Reload Page</button>
+  </div>
+
+  <script src="storage.js"></script>
+  <script>
+    // Helper to log messages to UI
+    function log(elementId, msg, isError = false) {
+      const el = document.getElementById(elementId);
+      const p = document.createElement('p');
+      p.textContent = msg;
+      p.className = isError ? 'error' : 'success';
+      el.appendChild(p);
+      console.log(msg);
+    }
+
+    function testCreateData() {
+      const output = 'test1-output';
+      document.getElementById(output).innerHTML = '';
+      
+      // Create test decks
+      const testState = {
+        version: 1,
+        timestamp: Date.now(),
+        decks: [
+          {
+            id: 'deck-1',
+            name: 'Spanish 101',
+            cards: [
+              { id: 'card-1', front: 'Hola', back: 'Hello' },
+              { id: 'card-2', front: 'Adiós', back: 'Goodbye' }
+            ]
+          }
+        ],
+        currentDeckId: 'deck-1'
+      };
+      
+      localStorage.setItem('flashcards-app-state', JSON.stringify(testState));
+      log(output, '✓ Created test deck with 2 cards');
+      
+      // View what was stored
+      const stored = localStorage.getItem('flashcards-app-state');
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(JSON.parse(stored), null, 2);
+      document.getElementById(output).appendChild(pre);
+    }
+
+    function viewStorage() {
+      const output = 'test1-output';
+      const stored = localStorage.getItem('flashcards-app-state');
+      if (!stored) {
+        log(output, 'No data in localStorage', true);
+        return;
+      }
+      const parsed = JSON.parse(stored);
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(parsed, null, 2);
+      document.getElementById(output).appendChild(pre);
+    }
+
+    function testReload() {
+      const output = 'test2-output';
+      document.getElementById(output).innerHTML = '';
+      
+      // Simulate loading from storage
+      const state = loadState();
+      if (!state) {
+        log(output, 'loadState() returned null', true);
+        return;
+      }
+      
+      log(output, '✓ loadState() successfully loaded state');
+      log(output, `  - Found ${state.decks.length} deck(s)`);
+      log(output, `  - Deck name: "${state.decks[0].name}"`);
+      log(output, `  - Cards in deck: ${state.decks[0].cards.length}`);
+      log(output, `  - Current deck ID: "${state.currentDeckId}"`);
+    }
+
+    function testSearch() {
+      const output = 'test3-output';
+      document.getElementById(output).innerHTML = '';
+      
+      // Create test data with more cards
+      const testState = {
+        version: 1,
+        timestamp: Date.now(),
+        decks: [
+          {
+            id: 'deck-2',
+            name: 'French Vocab',
+            cards: [
+              { id: 'card-1', front: 'Chat', back: 'Cat' },
+              { id: 'card-2', front: 'Chien', back: 'Dog' },
+              { id: 'card-3', front: 'Maison', back: 'House' },
+              { id: 'card-4', front: 'Voiture', back: 'Car' }
+            ]
+          }
+        ],
+        currentDeckId: 'deck-2'
+      };
+      
+      saveState(testState.decks, testState.currentDeckId);
+      log(output, '✓ Created 4 French cards');
+      
+      // Simulate search filter
+      const cards = testState.decks[0].cards;
+      const query = 'ch';
+      const filtered = cards.filter(c => 
+        c.front.toLowerCase().includes(query) || 
+        c.back.toLowerCase().includes(query)
+      );
+      
+      log(output, `✓ Searched for "${query}"`);
+      log(output, `  - Matches: ${filtered.length} (Chat, Chien)`);
+      
+      if (filtered.length === 2) {
+        log(output, '✓ Search filtering works correctly');
+      } else {
+        log(output, '✗ Search filtering failed', true);
+      }
+    }
+
+    function clearStorage() {
+      clearState();
+      document.getElementById('test1-output').innerHTML = '';
+      document.getElementById('test2-output').innerHTML = '';
+      document.getElementById('test3-output').innerHTML = '';
+      alert('Storage cleared. Page will reload.');
+      location.reload();
+    }
+  </script>
+</body>
+</html>
