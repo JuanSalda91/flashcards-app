@@ -310,7 +310,7 @@
       this.newCardBtn = document.getElementById('new-card');
       this.searchInput = document.getElementById('search-cards');
 
-      this._boundKeydown = this._boundKeydown.bind(this);
+      this._boundKeydown = this._keydownHandler.bind(this);
       this._bind();
     }
 
