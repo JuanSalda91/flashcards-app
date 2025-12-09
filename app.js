@@ -299,6 +299,7 @@
       this.isActive = false;
       this.currentCardIndex = 0;
       this.isFlipped = false;
+      this._cardIdCounter = 0; // for unique ID generation
 
       this.cardEl = document.getElementById('card');
       this.cardAreaEl = document.getElementById('card-area');
@@ -308,7 +309,7 @@
       this.newCardBtn = document.getElementById('new-card');
       this.searchInput = document.getElementById('search-cards');
 
-      this._boundKeydown = this._keydownHandler.bind(this);
+      this._boundKeydown = this._boundKeydown.bind(this);
       this._bind();
     }
 
@@ -380,6 +381,7 @@
         return;
       }
 
+      // Reset flip state explicitly
       this.isFlipped = false;
 
       const cardHTML = `
@@ -395,6 +397,11 @@
 
       if (this.cardAreaEl) {
         this.cardAreaEl.innerHTML = cardHTML;
+      }
+
+      // Reset flip button label
+      if (this.flipBtn) {
+        this.flipBtn.textContent = 'Flip';
       }
 
       // update card count
@@ -498,7 +505,8 @@
         const front = form.front.value.trim();
         const back = form.back.value.trim();
         if (front && back) {
-          const cardId = '' + Date.now();
+          // Generate unique ID: timestamp + counter + random suffix
+          const cardId = Date.now() + '-' + (this._cardIdCounter++) + '-' + Math.random().toString(36).substr(2, 9);
           this.currentDeck.cards.push({ id: cardId, front, back });
           this.renderCardList();
           this.renderCurrentCard();
@@ -580,9 +588,12 @@
         const front = form.front.value.trim();
         const back = form.back.value.trim();
         if (front && back) {
+          // Update card object directly (persists in the cards array)
           card.front = front;
           card.back = back;
+          // Re-render the card list and current card view
           this.renderCardList();
+          // This will re-render the current card with updated text
           this.renderCurrentCard();
           this.deckManager.modal.close();
         }
