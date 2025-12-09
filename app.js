@@ -303,6 +303,7 @@
 
       this.cardEl = document.getElementById('card');
       this.cardAreaEl = document.getElementById('card-area');
+      this.cardListEl = document.getElementById('card-list');
       this.prevBtn = document.getElementById('prev-card');
       this.flipBtn = document.getElementById('flip-card');
       this.nextBtn = document.getElementById('next-card');
@@ -318,6 +319,19 @@
       if (this.flipBtn) this.flipBtn.addEventListener('click', () => this.toggleFlip());
       if (this.nextBtn) this.nextBtn.addEventListener('click', () => this.nextCard());
       if (this.newCardBtn) this.newCardBtn.addEventListener('click', () => this.openNewCardModal());
+
+      // Use event delegation for card list to avoid listener leaks on renderCardList
+      if (this.cardListEl) {
+        this.cardListEl.addEventListener('click', (e) => {
+          if (e.target.matches('.edit-card')) {
+            const cardId = e.target.getAttribute('data-card-id');
+            this.openEditCardModal(cardId, e.target);
+          } else if (e.target.matches('.delete-card')) {
+            const cardId = e.target.getAttribute('data-card-id');
+            this.deleteCard(cardId);
+          }
+        });
+      }
     }
 
     enterStudyMode(deckId) {
@@ -551,17 +565,6 @@
       });
       html += '</div>';
       listContainer.innerHTML = html;
-
-      // wire up edit/delete buttons
-      listContainer.addEventListener('click', (e) => {
-        if (e.target.matches('.edit-card')) {
-          const cardId = e.target.getAttribute('data-card-id');
-          this.openEditCardModal(cardId, e.target);
-        } else if (e.target.matches('.delete-card')) {
-          const cardId = e.target.getAttribute('data-card-id');
-          this.deleteCard(cardId);
-        }
-      });
     }
 
     openEditCardModal(cardId, opener) {
