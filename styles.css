@@ -147,21 +147,78 @@ input[type="search"] {
 
 
 .card {
-	width: var(--card-width);
-	max-width: 100%;
-	background: var(--panel);
-	border-radius: var(--radius);
-	padding: 28px;
-	box-shadow: 0 8px 24px rgba(12,17,31,0.06);
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
+  width: var(--card-width);
+  max-width: 100%;
+  background: var(--panel);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: 0 8px 24px rgba(12,17,31,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  min-height: 240px;
+  cursor: pointer;
+  transition: transform 0.6s ease-in-out;
+  transform-style: preserve-3d;
 }
 
-.card-face { font-size: 1.125rem; color: var(--text); }
+.card.flipped {
+  transform: rotateY(180deg);
+}
 
-.card-controls { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+.card-face {
+  font-size: 1.125rem;
+  color: var(--text);
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backface-visibility: hidden;
+  border-radius: var(--radius);
+}
+
+.card-back {
+  transform: rotateY(180deg);
+}.card-controls { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
 .card-controls button { padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(15,23,42,0.06); background: #fff; }
+
+/* Card list */
+.card-list { margin-top: 24px; }
+.card-list-items { display: flex; flex-direction: column; gap: 8px; }
+.card-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid rgba(15,23,42,0.04);
+}
+.card-list-content { display: flex; gap: 10px; align-items: center; flex: 1; }
+.card-list-number {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.card-list-text { flex: 1; }
+.card-list-front { font-size: 0.95rem; font-weight: 500; color: var(--text); }
+.card-list-back { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+.card-list-actions { display: flex; gap: 6px; }
+.card-list-actions button { padding: 6px 8px; border-radius: 6px; border: none; background: transparent; cursor: pointer; }
+.card-list-actions button:hover { background: rgba(14,165,164,0.1); }
 
 /* Responsive adjustments */
 @media (max-width: var(--breakpoint-mobile)) {
