@@ -12,7 +12,6 @@
         <div class="header-inner">
             <h1 class="brand">Flashcards</h1>
             <div class="header-actions">
-                <input id="search-decks" type="search" placeholder="Search decks" aria-label="Search decks">
                 <button id="new-deck-btn" type="button">New Deck</button>
             </div>
         </div>
@@ -32,6 +31,15 @@
 
         <main class="main" id="main" role="main">
             <div class="main-inner">
+                <div class="deck-header">
+                    <h2 id="deck-title">Sample Deck 1</h2>
+                    <div class="deck-actions">
+                        <input id="search-cards" type="search" placeholder="Search cards" aria-label="Search cards">
+                        <button id="shuffle-deck" type="button">Shuffle</button>
+                        <button id="new-card" type="button">New Card</button>
+                    </div>
+                </div>
+
                 <section class="card-area" id="card-area" aria-live="polite">
                     <article class="card" id="card">
                         <div class="card-face card-front">Front of card</div>
